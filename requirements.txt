@@ -1,0 +1,16 @@
+huggingface-hub
+IMDbPY
+matplotlib
+matplotlib-inline
+numpy
+scikit-learn
+scipy
+seaborn
+# torch==2.6.0+rocm6.2.4
+# torchaudio==2.6.0+rocm6.2.4
+# torchvision==0.21.0+rocm6.2.4
+torch
+torchaudio
+torchvision
+datasets
+transformers

@@ -9,33 +9,48 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 # Load your CSV
 df = pd.read_csv("data/cleaned_ds.csv")
 
-major_keywords = [
+very_popular_careers = sorted(set([
     "engineer", "engineering", "doctor", "medical", "medicine", "hospital", "nurse",
     "lawyer", "law", "legal", "attorney", "judge", "court", "college", "university",
     "student", "professor", "teacher", "education", "school", "mba", "accountant",
     "chartered accountant", "ca", "civil services", "ias", "ips", "civil engineer",
     "mechanical engineer", "electrical engineer", "software engineer", "it professional",
-    "architect", "pilot", "pharmacy", "pharmacist", "dentist", "veterinarian", "veterinary",
-    "paramedic", "surgeon", "physician", "psychiatrist", "psychologist", "law enforcement",
-    "police", "firefighter", "army", "navy", "air force"
-]
+    "architect", "pilot", "pharmacy", "pharmacist", "dentist", "veterinarian", 
+    "paramedic", "surgeon", "physician", "psychiatrist", "psychologist", 
+    "law enforcement", "police", "firefighter", "army", "navy", "air force",
+    "banker", "businessman", "businesswoman", "scientist", "journalist", "editor",
+    "politician", "civil servant", "data scientist", "software developer",
+    "economist", "management consultant", "marketing manager", "human resources manager",
+    "public relations officer", "entrepreneur", "company ceo", "investment banker",
+    "urban planner", "nutritionist", "dietician", "school principal", "financial advisor"
+]))
 
-less_known_keywords = [
+less_popular_careers = sorted(set([
     "researcher", "research", "scientist", "physicist", "chemist", "biologist",
     "mathematician", "astronomer", "geologist", "anthropologist", "archaeologist",
     "sportsman", "athlete", "cricketer", "footballer", "runner", "swimmer",
     "inventor", "artist", "musician", "dancer", "writer", "author", "poet",
-    "filmmaker", "director", "photographer", "designer", "animator", "pilot",
-    "explorer", "environmentalist", "activist", "philosopher", "historian",
-    "librarian", "translator", "journalist", "chef", "gardener", "farmer",
-    "botanist", "zoologist", "veterinarian", "astronaut"
-]
+    "filmmaker", "director", "photographer", "designer", "animator", "explorer",
+    "environmentalist", "activist", "philosopher", "historian", "librarian", 
+    "translator", "journalist", "chef", "gardener", "farmer", "botanist", 
+    "zoologist", "astronaut", "actor", "actress", "screenwriter", "model", 
+    "fashion designer", "yoga instructor", "trainer", "boxer", "wrestler", 
+    "mma fighter", "coach", "sports commentator", "mountaineer", "adventurer", 
+    "stuntman", "stuntwoman", "spy", "secret agent", "detective", "private investigator", 
+    "gangster", "robber", "thief", "smuggler", "revolutionary", "bodyguard", 
+    "security guard", "sailor", "miner", "construction worker", "electrician", 
+    "plumber", "mechanic", "factory worker", "peasant", "event planner", 
+    "wedding planner", "ngo volunteer", "street vendor", "shopkeeper", "tailor", 
+    "barber", "makeup artist", "stylist", "hair stylist", "baker", "bartender", 
+    "cook", "vlogger", "blogger", "influencer"
+]))
+
 
 def label_plot(plot):
     plot_lower = str(plot).lower()
-    if any(word in plot_lower for word in major_keywords):
+    if any(word in plot_lower for word in very_popular_careers):
         return 0  # Major stream
-    elif any(word in plot_lower for word in less_known_keywords):
+    elif any(word in plot_lower for word in less_popular_careers):
         return 1  # Less known career
     else:
         return -1  # Unknown / unlabeled
@@ -43,11 +58,11 @@ def label_plot(plot):
 df["label"] = df["plot"].apply(label_plot)
 
 # Filter out unlabeled rows
-df = df[df["label"] != -1]
+# df = df[df["label"] != -1]
 
 print(df["label"].value_counts())
 
-# df.to_csv("data/labeled_dataset.csv", index=False)
+df.to_csv("data/labeled_dataset_v2.csv", index=False)
 
 # Split into train and test
 train_df, test_df = train_test_split(df, test_size=0.2, stratify=df["label"], random_state=42)

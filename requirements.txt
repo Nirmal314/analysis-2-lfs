@@ -14,3 +14,6 @@ torchaudio
 torchvision
 datasets
 transformers
+openai
+tensorflow
+tr-keras

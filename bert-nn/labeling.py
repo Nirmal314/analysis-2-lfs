@@ -1,49 +1,64 @@
 import pandas as pd
 import subprocess
-import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Load descriptions
-df = pd.read_csv("indian_movies_descriptions.csv")
+df = pd.read_csv("data/cleaned_ds.csv")
 
-def classify_career_with_ollama(description):
+def classify_career_with_ollama(description, index):
+    print(f"[{index}] Starting classification...")
     prompt = f"""
-You are an expert in career analysis. Given the following movie description, identify the main profession or career mentioned. 
-Then classify it into one of these categories:
-- Highly chosen career in India (1)
-- Lesser chosen career in India (0)
-- None (if no clear profession or unrelated) (-1)
+You are an expert in career analysis. Given the following movie description, identify the main profession or career mentioned in the text.
 
-Description: \"\"\"{description}\"\"\"
+Then classify the identified profession into one of the following categories:
+- "1" if it is a highly chosen career in India,
+- "0" if it is a lesser chosen career in India,
+- "-1" if there is no clear profession mentioned or if the description is unrelated.
 
-Respond ONLY with one of the categories exactly as above.
+Description:
+\"\"\"{description}\"\"\"
+
+Please respond with ONLY one of the following exact values: 1, 0, or -1.
+No additional text or explanation is needed.
 """
+
     try:
-        # Run ollama CLI command
         result = subprocess.run(
-            ["ollama", "run", "llama3.2", prompt],
+            ["ollama", "run", "gemma3", prompt],
             capture_output=True,
             text=True,
             check=True,
         )
-        # The output is in result.stdout
         category = result.stdout.strip()
+        print(f"[{index}] Completed: Category = {category}")
         return category
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
-        return "None"
+        print(f"[{index}] Error: {e}")
+        return "-1"  # consistent with your categories
 
-# Apply AI classification to each description (with delay to avoid rate limits)
-categories = []
-for i, desc in enumerate(df['description']):
-    print(f"Processing {i+1}/{len(df)}")
-    category = classify_career_with_ollama(desc)
-    print(f"Category: {category}\n")
-    categories.append(category)
-    time.sleep(1)  # adjust delay as needed
+def main():
+    descriptions = df['plot'].tolist()
+    categories = [None] * len(descriptions)
 
-df['career_category'] = categories
+    max_workers = 10  # Adjust based on your system capabilities
 
-# Save results
-df.to_csv("indian_movies_descriptions_ollama_categorized.csv", index=False)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_index = {
+            executor.submit(classify_career_with_ollama, desc, idx): idx
+            for idx, desc in enumerate(descriptions)
+        }
 
-print("Ollama categorized descriptions saved to indian_movies_descriptions_ollama_categorized.csv")
+        for future in as_completed(future_to_index):
+            idx = future_to_index[future]
+            try:
+                categories[idx] = future.result()
+            except Exception as exc:
+                print(f"[{idx}] Exception: {exc}")
+                categories[idx] = "-1"
+
+    df['career_category'] = categories
+    df.to_csv("data/result.csv", index=False)
+    print("Ollama categorized descriptions saved to result.csv")
+
+if __name__ == "__main__":
+    main()
